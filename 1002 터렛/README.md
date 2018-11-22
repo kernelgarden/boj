@@ -1,5 +1,7 @@
 # 1002: 터렛
 
+https://www.acmicpc.net/problem/1002
+
 ```
 $ cat input.txt | go run main.go
 ```

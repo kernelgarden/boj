@@ -29,20 +29,36 @@ func NextInts() []int {
 
 func main() {
 	scanner.Split(bufio.ScanWords)
+	reader := bufio.NewReader(os.Stdin)
 
-	h, w := NextInt(), NextInt()
+	//h, w := NextInt(), NextInt()
+	var h, w int
+	fmt.Fscanf(reader, "%d", &h)
+	fmt.Fscanf(reader, "%d\n", &w)
 	maze := make([][]int, h)
-	//nodes := make([]*Node, 0)
+	nodes := make([]*Node, h * w)
 
 	for i := 0; i < h; i++ {
 		maze[i] = make([]int, w)
-		line := NextInts()
+		//line := NextInts()
 		for j := 0; j < w; j++ {
-			maze[i][j] = line[j]
+			//maze[i][j] = line[j]
+			n, _ := reader.ReadByte()
+			maze[i][j] = int(n - '0')
+		}
+		reader.ReadByte()
+	}
+
+	for i := 0; i < h; i++ {
+		for j := 0; j < w; j++ {
+			pos := (i * w) + j
+			nearPoses := GetNearPoses(maze, w, h, j, i)
+			nodes[pos] = NewNode(pos)
+			nodes[pos].neighbors = append(nodes[pos].neighbors, nearPoses...)
 		}
 	}
 
-	fmt.Println(CalcShortestPath(maze, w, h, 0, (h * w) - 1))
+	fmt.Println(CalcShortestPath(nodes, 0, (h * w) - 1))
 }
 
 type Node struct {
@@ -56,27 +72,27 @@ func NewNode(pos int) *Node {
 }
 
 type Queue struct {
-	q []int
+	q []*Node
 	size int
 }
 
 func NewQueue(size int) *Queue {
-	return &Queue{q: make([]int, 0, size)}
+	return &Queue{q: make([]*Node, 0, size)}
 }
 
-func (q *Queue) Enque(elem int) {
+func (q *Queue) Enque(elem *Node) {
 	q.q = append(q.q, elem)
 	q.size++
 }
 
-func (q *Queue) EnqueRange(elems []int) {
+func (q *Queue) EnqueRange(elems []*Node) {
 	q.q = append(q.q, elems...)
 	q.size += len(elems)
 }
 
-func (q *Queue) Deque() int {
+func (q *Queue) Deque() *Node {
 	if q.size == 0 {
-		return -1
+		return nil
 	}
 
 	res := q.q[0]
@@ -90,51 +106,37 @@ func (q *Queue) Length() int {
 	return q.size
 }
 
-func CalcShortestPath(maze [][]int, xSize int, ySize int, startPos int, endPos int) int {
+func CalcShortestPath(nodes []*Node, startNode int, endNode int) int {
 	// 경로를 기억하도록 수정
-	lengths := make([]int, xSize * ySize)
-	//paths := make(map[int]int)
-	history := make(map[int]bool)
+	lengths := make([]int, len(nodes))
 	queue := NewQueue(0)
-	queue.Enque(startPos)
-	lengths[startPos] = 1
+	queue.Enque(nodes[startNode])
+	lengths[startNode] = 1
 	for {
 		pos := queue.Deque()
-		if pos == endPos {
+		if pos.isVisited {
+			continue
+		}
+
+		if pos.pos == endNode {
 			break
 		}
 
-		nearPaths := FindNearPath(maze, xSize, ySize, pos, history)
-		if len(nearPaths) == 0 {
+		if len(pos.neighbors) == 0 {
 			// 길이 없는 경우
 			continue
 		}
-		for _, path := range nearPaths {
-			// 이전 경로를 기록해둔다.
-			//paths[path] = pos
-			lengths[path] = lengths[pos] + 1
-		}
-		queue.EnqueRange(nearPaths)
 
-		history[pos] = true
+		pos.isVisited = true
+		for _, neighbor := range pos.neighbors {
+			if !nodes[neighbor].isVisited {
+				queue.Enque(nodes[neighbor])
+				lengths[nodes[neighbor].pos] = lengths[pos.pos] + 1
+			}
+		}
 	}
 
-	//return GetPathLength(paths, endPos, startPos)
-	return lengths[endPos]
-}
-
-func GetPathLength(paths map[int]int, startTraverse int, endTraverse int) int {
-	length := 0
-
-	for {
-		length++
-		if startTraverse ==  endTraverse {
-			break
-		}
-		startTraverse = paths[startTraverse]
-	}
-
-	return length
+	return lengths[nodes[endNode].pos]
 }
 
 var directions = [4][2]int {
@@ -143,11 +145,8 @@ var directions = [4][2]int {
 	{0, 1},
 }
 
-func FindNearPath(maze [][]int, xSize int, ySize int, targetPos int, history map[int]bool) []int {
+func GetNearPoses(maze [][]int, xSize int, ySize int, xPos int, yPos int) []int {
 	nearPoses := make([]int, 0)
-
-	xPos := targetPos % xSize
-	yPos := targetPos / ySize
 
 	for _, direction := range directions {
 		checkX := xPos + direction[0]
@@ -155,7 +154,7 @@ func FindNearPath(maze [][]int, xSize int, ySize int, targetPos int, history map
 		checkPos := (checkY * xSize) + checkX
 
 		if (checkX >= 0) && (checkX < xSize) && (checkY >= 0) && (checkY < ySize) {
-			if maze[checkY][checkX] == 1 && history[checkPos] == false {
+			if maze[checkY][checkX] == 1 {
 				nearPoses = append(nearPoses, checkPos)
 			}
 		}
@@ -163,4 +162,3 @@ func FindNearPath(maze [][]int, xSize int, ySize int, targetPos int, history map
 
 	return nearPoses
 }
-

@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"math"
 	"os"
 )
 
@@ -22,18 +23,17 @@ func main() {
 
 	makeConnectMap(nodes, size)
 
+	/*
 	for i := 0; i < size; i++ {
 		for j := 0; j < size; j++ {
 			fmt.Printf("%v ", nodes[i][j])
 		}
 		fmt.Println()
 	}
-
-	/*
-	shortestDist := math.MaxInt32
-	findShortestDist(&shortestDist)
-	fmt.Println(shortestDist)
 	*/
+	shortestDist := math.MaxInt32
+	findShortestDist(nodes, size, &shortestDist)
+	fmt.Println(shortestDist)
 }
 
 func makeConnectMap(nodes [][]int, size int) {
@@ -110,6 +110,57 @@ func GetConnectedNodes(nodes [][]int, size int, targetPos int) ([]int, []int) {
 	return connectedNodes, unConnectedNodes
 }
 
+/*
+func findShortestDistUtil(nodes [][]int, size int, startX int, startY int, startGroupId int, depth int, shortestDist *int) {
+	// 이 경우는 탐색할 필요가 이미 없다.
+	if depth >= *shortestDist {
+		return
+	}
+
+	connectedLands, connectedSeas := GetConnectedNodes(nodes, size, getPos(startX, startY, size))
+
+	// 인접 육지를 먼저 체크한다.
+	for _, connectedLand := range connectedLands {
+		x, y := getXY(connectedLand, size)
+		if nodes[y][x] != startGroupId {
+			if depth < *shortestDist {
+				*shortestDist = depth
+			}
+		}
+	}
+
+	for _, connectedSea := range connectedSeas {
+		x, y := getXY(connectedSea, size)
+		findShortestDistUtil(nodes, size, x, y, startGroupId, depth + 1, shortestDist)
+	}
+}
+
+func findShortestDist(nodes [][]int, size int) int {
+	shortestDist := math.MaxInt32
+	for i := 0; i < size; i++ {
+		for j := 0; j < size; j++ {
+			// 바다인 곳은 탐색 시작 노드가 될 수 없다.
+			if nodes[i][j] == 0 {
+				continue
+			}
+
+			findShortestDistUtil(nodes, size, j, i, nodes[i][j], 1, &shortestDist)
+		}
+	}
+
+	return shortestDist
+}
+*/
+
+type PosDepthPair struct {
+	pos int
+	depth int
+}
+
+func NewPosDepthPair(pos, depth int) PosDepthPair {
+	return PosDepthPair{ pos, depth}
+}
+
 func findShortestDist(nodes [][]int, size int, shortestDist *int) {
 	for i := 0; i < size; i++ {
 		for j := 0; j < size; j++ {
@@ -120,7 +171,8 @@ func findShortestDist(nodes [][]int, size int, shortestDist *int) {
 
 			startGroupId := nodes[i][j]
 
-			queue := make([]int, 0)
+			isFind := false
+			queue := make([]PosDepthPair, 0)
 			isVisited := make([][]bool, size)
 			for y := 0; y < size; y++ {
 				isVisited[y] = make([]bool, size)
@@ -129,16 +181,45 @@ func findShortestDist(nodes [][]int, size int, shortestDist *int) {
 				}
 			}
 
-			queue = append(queue, getPos(j, i, size))
+			queue = append(queue,NewPosDepthPair(getPos(j, i, size), 0))
 			for {
-				if len(queue) == 0 {
+				if len(queue) == 0 || isFind {
 					break
 				}
 
-				first := queue[0]
+				target := queue[0]
 				queue = queue[1:]
 
-				
+				// 이미 방문한 노드면 재 방문 필요가 없음
+				if x, y := getXY(target.pos, size); isVisited[y][x] == true {
+					continue
+				} else {
+					isVisited[y][x] = true
+				}
+
+				// 최단 노드가 아니라면 탐색 포기
+				if target.depth >= *shortestDist {
+					break
+				}
+
+				connectedLands, connectedSeas := GetConnectedNodes(nodes, size, target.pos)
+
+				// 인접한 육지부터 체크
+				for _, connectedLand := range connectedLands {
+					x, y := getXY(connectedLand, size)
+					// 다른 최단 노드를 찾은 경우다.
+					if nodes[y][x] != startGroupId {
+						isFind = true
+						if target.depth < *shortestDist {
+							*shortestDist = target.depth
+						}
+						break
+					}
+				}
+
+				for _, connectedSea := range connectedSeas {
+					queue = append(queue, NewPosDepthPair(connectedSea, target.depth + 1))
+				}
 			}
 		}
 	}
@@ -146,4 +227,8 @@ func findShortestDist(nodes [][]int, size int, shortestDist *int) {
 
 func getPos(x int, y int, size int) int {
 	return (y * size) + x
+}
+
+func getXY(pos int, size int) (int, int) {
+	return pos % size, pos / size
 }

@@ -85,13 +85,21 @@ func Traverse(students []*Student, targetPos int, isVisited []bool) (bool, int) 
 	cycleNum := 0
 
 	startPos := targetPos
+	trackList := make(map[int]bool)
 
 	for {
+		if _, has := trackList[targetPos]; !has {
+			trackList[targetPos] = isVisited[targetPos]
+		}
+
 		if isVisited[targetPos] {
 			if targetPos == startPos {
 				isCycle = true
 			} else {
 				cycleNum = 0
+				for idx, before := range trackList {
+					isVisited[idx] = before
+				}
 			}
 			break
 		} else {

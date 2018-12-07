@@ -59,48 +59,34 @@ func NewStudent(val int, to int) *Student {
 func CalcCycleNum(students []*Student, stuNum int) int {
 	totalCycleNum := 0
 	isVisited := make([]bool, stuNum + 1)
-	for i := 0; i <= stuNum; i++ {
-		isVisited[i] = false
-	}
 
 	for i := 1; i <= stuNum; i++ {
 		if isVisited[i] {
-			if students[i].to == students[i].val {
-				totalCycleNum++
-			}
 			continue
 		}
 
-		isCycle, cycleNum := Traverse(students, i, isVisited)
-		if isCycle {
-			totalCycleNum += cycleNum
-		}
+		cycleNum := Traverse(students, i, isVisited)
+		totalCycleNum += cycleNum
 	}
 
 	return totalCycleNum
 }
 
-func Traverse(students []*Student, targetPos int, isVisited []bool) (bool, int) {
-	isCycle := false
+func Traverse(students []*Student, targetPos int, isVisited []bool) int {
 	cycleNum := 0
 
-	startPos := targetPos
-	trackList := make(map[int]bool)
+	// key - node.var, val - step
+	trackList := make(map[int]int)
+	curStep := 0
 
 	for {
 		if _, has := trackList[targetPos]; !has {
-			trackList[targetPos] = isVisited[targetPos]
+			trackList[targetPos] = curStep
 		}
 
 		if isVisited[targetPos] {
-			if targetPos == startPos {
-				isCycle = true
-			} else {
-				cycleNum = 0
-				for idx, before := range trackList {
-					isVisited[idx] = before
-				}
-			}
+			// students[targetPos].val이 사이클의 시작점이다.
+			cycleNum = curStep - trackList[students[targetPos].val]
 			break
 		} else {
 			isVisited[targetPos] = true
@@ -108,8 +94,8 @@ func Traverse(students []*Student, targetPos int, isVisited []bool) (bool, int) 
 
 		target := students[targetPos]
 		targetPos = target.to
-		cycleNum++
+		curStep++
 	}
 
-	return isCycle, cycleNum
+	return cycleNum
 }

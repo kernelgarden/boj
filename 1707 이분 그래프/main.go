@@ -107,14 +107,14 @@ func dspUtil(node *Node, toFillColor color, isVisited []bool) bool {
 				isValid = false
 				break
 			}
-		} else {
-			// 색을 칠해나간다.
-			if isVisited[_node.id] {
-				continue
-			}
-
-			isValid = dspUtil(_node, chooseColor(toFillColor), isVisited)
 		}
+
+		// 색을 칠해나간다.
+		if isVisited[_node.id] {
+			continue
+		}
+
+		isValid = dspUtil(_node, chooseColor(toFillColor), isVisited)
 	}
 
 	return isValid
@@ -128,7 +128,10 @@ func IsBipartiteGraph(nodes []*Node) bool {
 	isBipartiteGraph := true
 	for i := 1; i < len(nodes); i++ {
 		if !isVisited[i] {
-			isBipartiteGraph = dspUtil(nodes[1], color(black), isVisited)
+			isBipartiteGraph = dspUtil(nodes[i], color(black), isVisited)
+			if isBipartiteGraph == false {
+				break
+			}
 		}
 	}
 	return isBipartiteGraph

@@ -80,9 +80,11 @@ func Traverse(students []*Student, targetPos int, isVisited []bool) int {
 	curStep := 0
 
 	for {
+		/*
 		if _, has := trackList[targetPos]; !has {
 			trackList[targetPos] = curStep
 		}
+		*/
 
 		if isVisited[targetPos] {
 			// students[targetPos].val이 사이클의 시작점이다.
@@ -90,10 +92,10 @@ func Traverse(students []*Student, targetPos int, isVisited []bool) int {
 			break
 		} else {
 			isVisited[targetPos] = true
+			trackList[targetPos] = curStep
 		}
 
-		target := students[targetPos]
-		targetPos = target.to
+		targetPos = students[targetPos].to
 		curStep++
 	}
 

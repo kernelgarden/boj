@@ -1,5 +1,4 @@
 package main
-/*
 
 import (
 	"bufio"
@@ -44,7 +43,6 @@ func main() {
 				nodes[c] = MakeNode(c)
 			}
 
-			//nodes[p].AddChild(nodes[c], w)
 			nodes[p].Connect(nodes[c], w)
 		}
 	}
@@ -54,17 +52,17 @@ func main() {
 
 type Node struct {
 	val int
-	neigbors []*Node
+	neighbors []*Node
 	weights []int
 	isVisited bool
 }
 
 func MakeNode(val int) *Node {
-	return &Node{val: val, neigbors: make([]*Node, 0), weights: make([]int, 0), isVisited: false}
+	return &Node{val: val, neighbors: make([]*Node, 0), weights: make([]int, 0), isVisited: false}
 }
 
 func (n1 *Node) Connect(n2 *Node, weight int) {
-	n1.neigbors = append(n1.neigbors, n2)
+	n1.neighbors = append(n1.neighbors, n2)
 	n1.weights = append(n1.weights, weight)
 }
 
@@ -72,7 +70,6 @@ func getLongestPath(root *Node) int {
 	longestPath := 0
 
 	lengthToRoot := traverse(root, &longestPath)
-	fmt.Printf("[Debug] lengthToRoot: %v\n", lengthToRoot)
 
 	if lengthToRoot >= longestPath {
 		return lengthToRoot
@@ -81,22 +78,19 @@ func getLongestPath(root *Node) int {
 	}
 }
 
-func bfs(root *Node, longestPath *int) int {
-
-}
-
 func traverse(root *Node, longestPath *int) int {
-	if root == nil || root.isVisited {
+	if root == nil {
 		return 0
 	}
-
 	root.isVisited = true
 
 	lengths := make([]int, 0)
-	for i := 0; i < len(root.neigbors); i++ {
-		lengths = append(lengths, traverse(root.neigbors[i], longestPath) + root.weights[i])
+	for i := 0; i < len(root.neighbors); i++ {
+		if root.neighbors[i].isVisited {
+			continue
+		}
+		lengths = append(lengths, traverse(root.neighbors[i], longestPath) + root.weights[i])
 	}
-
 	sort.Sort(sort.Reverse(sort.IntSlice(lengths)))
 
 	first := 0
@@ -114,8 +108,7 @@ func traverse(root *Node, longestPath *int) int {
 		*longestPath = totalPath
 	}
 
-	fmt.Printf("[Debug] root: %v, path: %v, first: %v, second: %v\n", root.val, totalPath, first, second)
+	//fmt.Printf("[Debug] root: %v, path: %v, first: %v, second: %v\n", root.val, totalPath, first, second)
 
 	return first
 }
-*/

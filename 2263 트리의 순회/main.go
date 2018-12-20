@@ -35,6 +35,8 @@ func MakeTree(inOrders, postOrders []int) *Node {
 }
 
 func MakeSubTree(subInOrders []int, subPostOrders []int, subLen int, cache map[int]int, factor int) *Node {
+	// inorder 리스트로는 왼쪽 과 오른쪽의 서브트리를 구성하기 위해 사용하고,
+	// postorder 리스트로는 서브 트리의 루트를 구하기 위해 사용한다.
 	if subLen == 1 {
 		return MakeNode(subInOrders[0])
 	}

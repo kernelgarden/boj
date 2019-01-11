@@ -76,10 +76,6 @@ func getLength(nums []int, n int, start int, cache []int) int {
 */
 
 func getLength(num []int, n int, start int, cache []int) int {
-	if start >= n {
-		return 0
-	}
-
 	if cache[start] != -1 {
 		return cache[start]
 	}
